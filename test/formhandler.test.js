@@ -1,4 +1,5 @@
 import test from 'ava'
+import sinon from 'sinon'
 import { JSDOM } from 'jsdom'
 import Chromeless from 'chromeless'
 
@@ -24,11 +25,21 @@ test('throws error if selector is invalid', t => {
   t.is(error.message, 'Could not find element with selector: test.')
 })
 
-test('addSubmitHandler method exists', t => {
+test('addSubmitHandler method', t => {
   const fh = new FormHandler(form)
-  fh.addSubmitHandler(() => {})
+  const serializeArray = () => {
+    return {
+      forEach () {}
+    }
+  }
+  const on = sinon.stub(fh.$formElement, 'on').callsFake((type, callback) => {
+    callback.call({ reset () {}, elements: [{}, { focus () {} }], serializeArray }, { preventDefault () {} })
+    t.true(on.calledOnce)
+  })
+
   t.true(typeof fh.addSubmitHandler === 'function')
-  t.true(typeof fh.$formElement.on === 'function')
+
+  fh.addSubmitHandler(() => {})
 })
 
 test('app title', async t => {
